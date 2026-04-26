@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ─── Blog Posts ──────────────────────────────────────────────
+model Post {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  excerpt     String
+  content     String   // Markdown
+  coverImage  String?  // URL or path
+  category    String   // "explainer" | "commentary" | "reading"
+  difficulty  String   @default("introductory") // "introductory" | "intermediate" | "advanced"
+  published   Boolean  @default(false)
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  authorId    String?
+  author      Thinker? @relation(fields: [authorId], references: [id])
+  tags        Tag[]
+}
+
+// ─── Thinkers / Authors ─────────────────────────────────────
+model Thinker {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  birthYear       Int?
+  deathYear       Int?
+  nationality     String?
+  photoUrl        String?
+  shortBio        String   // One paragraph
+  fullBio         String   // Markdown, longer
+  contribution    String   // Their key intellectual contribution
+  keyWorks        String   // JSON array of { title, year, description }
+  connections     String?  // JSON array of slugs of connected thinkers
+  published       Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  posts           Post[]
+  infographics    Infographic[]
+}
+
+// ─── Infographics / Visual Explainers ───────────────────────
+model Infographic {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  imageUrl    String?  // Static image path
+  embedHtml   String?  // For interactive/embedded content
+  type        String   // "infographic" | "diagram" | "video" | "interactive"
+  videoUrl    String?  // YouTube/Vimeo embed URL
+  published   Boolean  @default(false)
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  thinkerId   String?
+  thinker     Thinker? @relation(fields: [thinkerId], references: [id])
+  tags        Tag[]
+}
+
+// ─── Long-form Articles ─────────────────────────────────────
+model Article {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  subtitle    String?
+  author      String   // Freeform author name (can be site editor)
+  excerpt     String
+  content     String   // Markdown
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tags        Tag[]
+}
+
+// ─── Resources ──────────────────────────────────────────────
+model Resource {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  url         String?
+  type        String   // "book" | "paper" | "video" | "course" | "website"
+  difficulty  String   @default("introductory")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Tags (shared across content) ───────────────────────────
+model Tag {
+  id            String        @id @default(cuid())
+  name          String        @unique
+  slug          String        @unique
+  posts         Post[]
+  infographics  Infographic[]
+  articles      Article[]
+}
+
+// ─── Glossary ───────────────────────────────────────────────
+model GlossaryTerm {
+  id          String   @id @default(cuid())
+  term        String   @unique
+  definition  String   // Markdown
+  relatedTerms String? // JSON array of term strings
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
