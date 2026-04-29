@@ -26,30 +26,32 @@ export default function BlogCard({
   return (
     <Link
       href={`/blog/${slug}`}
-      className={`group block bg-white rounded-lg border border-sand/60 p-6 lg:p-8 card-lift ${
-        featured ? 'ring-2 ring-burgundy-200' : ''
+      className={`group flex flex-col bg-white rounded border border-sand/60 p-4 card-lift ${
+        featured ? 'ring-1 ring-burgundy-200' : ''
       }`}
     >
       {/* Meta row */}
-      <div className="flex items-center gap-3 mb-4">
-        <span className={BADGE_CLASS[category] ?? 'badge'}>
+      <div className="flex items-center gap-2 mb-2.5">
+        <span className={`${BADGE_CLASS[category] ?? 'badge'} text-[0.65rem] py-0.5 px-2`}>
           {category}
         </span>
-        <span className="difficulty">{difficulty}</span>
+        <span className="text-[0.68rem] font-mono uppercase tracking-widest text-muted">
+          {difficulty}
+        </span>
       </div>
 
       {/* Title */}
-      <h3 className="font-serif text-title font-semibold text-charcoal group-hover:text-burgundy-600 transition-colors mb-3">
+      <h3 className="font-serif text-[0.9875rem] font-semibold text-charcoal group-hover:text-burgundy-600 transition-colors mb-2 leading-snug">
         {title}
       </h3>
 
       {/* Excerpt */}
-      <p className="text-body text-slate leading-relaxed mb-4 line-clamp-3">
+      <p className="text-[0.8125rem] text-slate leading-relaxed mb-3 line-clamp-2 flex-1">
         {excerpt}
       </p>
 
       {/* Footer */}
-      <div className="flex items-center gap-2 text-small text-muted">
+      <div className="flex items-center gap-2 text-[0.7rem] text-muted mt-auto">
         <time dateTime={date.toISOString()}>
           {format(date, 'MMM d, yyyy')}
         </time>

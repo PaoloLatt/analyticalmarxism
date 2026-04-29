@@ -107,6 +107,35 @@ model Tag {
   articles      Article[]
 }
 
+// ─── Social Accounts ────────────────────────────────────────
+model SocialAccount {
+  id          String   @id @default(cuid())
+  platform    String   // "twitter" | "facebook" | "linkedin"
+  accountName String
+  accessToken String?  // encrypted in production
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts       SocialPost[]
+}
+
+// ─── Social Posts ────────────────────────────────────────────
+model SocialPost {
+  id          String   @id @default(cuid())
+  postId      String?  // reference to blog Post
+  platform    String
+  content     String   // the text to publish
+  status      String   @default("draft") // "draft"|"scheduled"|"published"|"failed"
+  publishedAt DateTime?
+  externalId  String?  // ID returned by the social platform API
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  accountId   String?
+  account     SocialAccount? @relation(fields: [accountId], references: [id])
+}
+
 // ─── Glossary ───────────────────────────────────────────────
 model GlossaryTerm {
   id          String   @id @default(cuid())

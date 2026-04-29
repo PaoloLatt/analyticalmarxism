@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import LayoutShell from '@/components/LayoutShell';
+import GTMScript from '@/components/GTMScript';
+import CookieConsent from '@/components/CookieConsent';
+import { prisma } from '@/lib/db';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -23,17 +25,23 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const thinkers = await prisma.thinker.findMany({
+    where: { published: true },
+    orderBy: { name: 'asc' },
+    select: { name: true, slug: true },
+  });
+
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+      <body className="bg-cream text-charcoal font-sans antialiased">
+        <GTMScript />
+        <LayoutShell thinkers={thinkers}>{children}</LayoutShell>
+        <CookieConsent />
       </body>
     </html>
   );

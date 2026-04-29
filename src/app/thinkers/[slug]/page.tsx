@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import BlogCard from '@/components/BlogCard';
+import TrackPageView from '@/components/TrackPageView';
 import type { Metadata } from 'next';
 
 interface Props {
@@ -48,7 +49,11 @@ export default async function ThinkerPage({ params }: Props) {
   } catch {}
 
   return (
-    <div className="max-w-wide mx-auto px-6 lg:px-10 py-16 lg:py-22">
+    <div className="max-w-wide mx-auto px-6 lg:px-8 py-8 lg:py-10">
+      <TrackPageView
+        eventName="thinker_viewed"
+        params={{ thinker_slug: thinker.slug, thinker_name: thinker.name }}
+      />
       {/* Back */}
       <Link
         href="/thinkers"

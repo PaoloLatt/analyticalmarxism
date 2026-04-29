@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import TrackPageView from '@/components/TrackPageView';
+import ShareButtons from '@/components/ShareButtons';
 import type { Metadata } from 'next';
 
 interface Props {
@@ -33,7 +35,11 @@ export default async function BlogPostPage({ params }: Props) {
   };
 
   return (
-    <article className="max-w-article mx-auto px-6 py-16 lg:py-22">
+    <article className="max-w-article mx-auto px-6 py-10 lg:py-12">
+      <TrackPageView
+        eventName="article_read"
+        params={{ content_slug: post.slug, content_title: post.title, category: post.category }}
+      />
       {/* Back link */}
       <Link
         href="/blog"
@@ -86,6 +92,11 @@ export default async function BlogPostPage({ params }: Props) {
           ))}
         </div>
       )}
+
+      {/* Share buttons */}
+      <div className="mb-8">
+        <ShareButtons title={post.title} slug={post.slug} />
+      </div>
 
       <div className="divider-left !mb-10" />
 
