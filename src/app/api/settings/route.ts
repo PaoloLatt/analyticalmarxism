@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/db';
 
 const DEFAULTS: Record<string, string> = {
   'social.twitter':   'https://twitter.com/placeholder',
@@ -11,26 +11,25 @@ const DEFAULTS: Record<string, string> = {
 };
 
 export async function GET() {
-  const rows = await prisma.siteSettings.findMany();
+  const { data: rows } = await supabase.from('SiteSettings').select('key, value');
   const settings: Record<string, string> = { ...DEFAULTS };
-  for (const { key, value } of rows) {
-    settings[key] = value;
+  for (const row of rows ?? []) {
+    settings[row.key as string] = row.value as string;
   }
   return NextResponse.json(settings);
 }
 
 export async function PUT(req: Request) {
   const body: Record<string, string> = await req.json();
+  const now = new Date().toISOString();
 
-  await Promise.all(
-    Object.entries(body).map(([key, value]) =>
-      prisma.siteSettings.upsert({
-        where:  { key },
-        update: { value },
-        create: { key, value },
-      })
-    )
-  );
+  const { error } = await supabase
+    .from('SiteSettings')
+    .upsert(
+      Object.entries(body).map(([key, value]) => ({ key, value, updatedAt: now })),
+      { onConflict: 'key' }
+    );
 
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/db';
 
 export async function GET() {
-  const posts = await prisma.socialPost.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: { account: true },
-  });
+  const { data: posts, error } = await supabase
+    .from('SocialPost')
+    .select('*, account:SocialAccount(platform, accountName)')
+    .order('createdAt', { ascending: false });
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(posts);
 }
 
@@ -17,16 +19,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'platform and content are required' }, { status: 400 });
   }
 
-  const socialPost = await prisma.socialPost.create({
-    data: {
-      postId:    postId    ?? null,
+  const now = new Date().toISOString();
+  const { data: socialPost, error } = await supabase
+    .from('SocialPost')
+    .insert({
+      id: crypto.randomUUID(),
+      postId: postId ?? null,
       platform,
       content,
       accountId: accountId ?? null,
-      status:    'draft',
-    },
-  });
+      status: 'draft',
+      createdAt: now,
+      updatedAt: now,
+    })
+    .select()
+    .single();
 
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(socialPost, { status: 201 });
 }
 
@@ -37,22 +46,21 @@ export async function PUT(req: Request) {
   if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
 
   if (action === 'publish') {
-    // TODO: call the relevant platform API here
-    // e.g. for Twitter: await twitterClient.v2.tweet(post.content)
-    // e.g. for LinkedIn: await linkedinClient.postShare(...)
-    const updated = await prisma.socialPost.update({
-      where: { id },
-      data: {
-        status:      'published',
-        publishedAt: new Date(),
-        // externalId: result.id  // set this from the platform API response
-      },
-    });
+    const now = new Date().toISOString();
+    const { data: updated, error } = await supabase
+      .from('SocialPost')
+      .update({ status: 'published', publishedAt: now, updatedAt: now })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(updated);
   }
 
   if (action === 'delete') {
-    await prisma.socialPost.delete({ where: { id } });
+    const { error } = await supabase.from('SocialPost').delete().eq('id', id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   }
 

@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -12,19 +12,26 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const article = await prisma.article.findUnique({ where: { slug } });
+  const { data: article } = await supabase
+    .from('Article')
+    .select('title, excerpt')
+    .eq('slug', slug)
+    .single();
   if (!article) return { title: 'Article Not Found' };
   return { title: article.title, description: article.excerpt };
 }
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
-  const article = await prisma.article.findUnique({
-    where: { slug },
-    include: { tags: true },
-  });
+  const { data: article } = await supabase
+    .from('Article')
+    .select('*')
+    .eq('slug', slug)
+    .single();
 
   if (!article || !article.published) notFound();
+
+  const createdAt = new Date(article.createdAt);
 
   return (
     <article className="max-w-article mx-auto px-6 py-16 lg:py-22">
@@ -46,8 +53,8 @@ export default async function ArticlePage({ params }: Props) {
       <div className="flex items-center gap-3 text-small text-muted mb-10">
         <span>{article.author}</span>
         <span className="text-sand">·</span>
-        <time dateTime={article.createdAt.toISOString()}>
-          {format(article.createdAt, 'MMMM d, yyyy')}
+        <time dateTime={createdAt.toISOString()}>
+          {format(createdAt, 'MMMM d, yyyy')}
         </time>
       </div>
 

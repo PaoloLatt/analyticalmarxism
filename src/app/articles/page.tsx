@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import SectionHeader from '@/components/SectionHeader';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -8,11 +8,11 @@ export const metadata: Metadata = { title: 'Articles & Essays' };
 export const dynamic = 'force-dynamic';
 
 export default async function ArticlesPage() {
-  const articles = await prisma.article.findMany({
-    where: { published: true },
-    orderBy: { createdAt: 'desc' },
-    include: { tags: true },
-  });
+  const { data: articles } = await supabase
+    .from('Article')
+    .select('id, slug, title, subtitle, author, excerpt, createdAt')
+    .eq('published', true)
+    .order('createdAt', { ascending: false });
 
   return (
     <div className="max-w-wide mx-auto px-6 lg:px-10 py-16 lg:py-22">
@@ -23,9 +23,9 @@ export default async function ArticlesPage() {
         centered
       />
 
-      {articles.length > 0 ? (
+      {articles && articles.length > 0 ? (
         <div className="max-w-article mx-auto mt-12 space-y-0 divide-y divide-sand stagger">
-          {articles.map((article) => (
+          {articles.map((article: any) => (
             <Link
               key={article.id}
               href={`/articles/${article.slug}`}
@@ -43,8 +43,8 @@ export default async function ArticlesPage() {
               <div className="flex items-center gap-3 text-small text-muted">
                 <span>{article.author}</span>
                 <span className="text-sand">·</span>
-                <time dateTime={article.createdAt.toISOString()}>
-                  {format(article.createdAt, 'MMM d, yyyy')}
+                <time dateTime={new Date(article.createdAt).toISOString()}>
+                  {format(new Date(article.createdAt), 'MMM d, yyyy')}
                 </time>
               </div>
             </Link>

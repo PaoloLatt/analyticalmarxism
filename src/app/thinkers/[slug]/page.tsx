@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
@@ -12,7 +12,11 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const thinker = await prisma.thinker.findUnique({ where: { slug } });
+  const { data: thinker } = await supabase
+    .from('Thinker')
+    .select('name, shortBio')
+    .eq('slug', slug)
+    .single();
   if (!thinker) return { title: 'Thinker Not Found' };
   return { title: thinker.name, description: thinker.shortBio };
 }
@@ -25,18 +29,21 @@ interface KeyWork {
 
 export default async function ThinkerPage({ params }: Props) {
   const { slug } = await params;
-  const thinker = await prisma.thinker.findUnique({
-    where: { slug },
-    include: {
-      posts: {
-        where: { published: true },
-        orderBy: { createdAt: 'desc' },
-        take: 4,
-      },
-    },
-  });
+  const { data: thinker } = await supabase
+    .from('Thinker')
+    .select('*')
+    .eq('slug', slug)
+    .single();
 
   if (!thinker || !thinker.published) notFound();
+
+  const { data: relatedPosts } = await supabase
+    .from('Post')
+    .select('id, slug, title, excerpt, category, difficulty, createdAt')
+    .eq('authorId', thinker.id)
+    .eq('published', true)
+    .order('createdAt', { ascending: false })
+    .limit(4);
 
   const lifespan = thinker.birthYear
     ? `${thinker.birthYear}–${thinker.deathYear ?? 'present'}`
@@ -60,7 +67,7 @@ export default async function ThinkerPage({ params }: Props) {
               <img src={thinker.photoUrl} alt={thinker.name} className="w-full h-full object-cover" />
             ) : (
               <span className="text-[2.5rem] font-medium text-zinc-300">
-                {thinker.name.split(' ').map(w => w[0]).join('')}
+                {thinker.name.split(' ').map((w: string) => w[0]).join('')}
               </span>
             )}
           </div>
@@ -130,13 +137,13 @@ export default async function ThinkerPage({ params }: Props) {
           )}
 
           {/* Related posts */}
-          {thinker.posts.length > 0 && (
+          {relatedPosts && relatedPosts.length > 0 && (
             <section>
               <h2 className="text-[1rem] font-medium text-zinc-900 mb-4">
                 Related Posts
               </h2>
               <div className="grid gap-3 md:grid-cols-2">
-                {thinker.posts.map((post) => (
+                {relatedPosts.map((post: any) => (
                   <BlogCard
                     key={post.id}
                     slug={post.slug}

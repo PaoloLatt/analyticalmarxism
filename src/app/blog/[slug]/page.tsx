@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -13,17 +13,22 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = await prisma.post.findUnique({ where: { slug } });
+  const { data: post } = await supabase
+    .from('Post')
+    .select('title, excerpt')
+    .eq('slug', slug)
+    .single();
   if (!post) return { title: 'Post Not Found' };
   return { title: post.title, description: post.excerpt };
 }
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const post = await prisma.post.findUnique({
-    where: { slug },
-    include: { author: true, tags: true },
-  });
+  const { data: post } = await supabase
+    .from('Post')
+    .select('*, author:Thinker(name, slug)')
+    .eq('slug', slug)
+    .single();
 
   if (!post || !post.published) notFound();
 
@@ -32,6 +37,8 @@ export default async function BlogPostPage({ params }: Props) {
     commentary: 'badge-commentary',
     reading:    'badge-reading',
   };
+
+  const createdAt = new Date(post.createdAt);
 
   return (
     <article className="mx-auto px-6 py-10 lg:py-12" style={{ maxWidth: '680px' }}>
@@ -58,8 +65,8 @@ export default async function BlogPostPage({ params }: Props) {
 
       {/* Byline */}
       <div className="flex items-center gap-3 text-[0.78rem] text-zinc-400 mb-4">
-        <time dateTime={post.createdAt.toISOString()}>
-          {format(post.createdAt, 'MMMM d, yyyy')}
+        <time dateTime={createdAt.toISOString()}>
+          {format(createdAt, 'MMMM d, yyyy')}
         </time>
         {post.author && (
           <>
@@ -73,20 +80,6 @@ export default async function BlogPostPage({ params }: Props) {
           </>
         )}
       </div>
-
-      {/* Tags */}
-      {post.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-8">
-          {post.tags.map((tag) => (
-            <span
-              key={tag.id}
-              className="text-[0.65rem] font-mono bg-zinc-100 text-zinc-400 px-2 py-0.5 rounded-sm"
-            >
-              #{tag.name}
-            </span>
-          ))}
-        </div>
-      )}
 
       <div className="h-px bg-zinc-100 mb-8" />
 

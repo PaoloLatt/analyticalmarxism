@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import BlogCard from '@/components/BlogCard';
 import ThinkerCard from '@/components/ThinkerCard';
 import { ArrowRight } from 'lucide-react';
@@ -7,18 +7,19 @@ import { ArrowRight } from 'lucide-react';
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [posts, thinkers] = await Promise.all([
-    prisma.post.findMany({
-      where: { published: true },
-      orderBy: { createdAt: 'desc' },
-      take: 6,
-      include: { author: true },
-    }),
-    prisma.thinker.findMany({
-      where: { published: true },
-      orderBy: { name: 'asc' },
-      take: 6,
-    }),
+  const [{ data: posts }, { data: thinkers }] = await Promise.all([
+    supabase
+      .from('Post')
+      .select('id, slug, title, excerpt, category, difficulty, createdAt, featured, author:Thinker(name, slug)')
+      .eq('published', true)
+      .order('createdAt', { ascending: false })
+      .limit(6),
+    supabase
+      .from('Thinker')
+      .select('id, slug, name, shortBio, nationality, birthYear, deathYear, photoUrl')
+      .eq('published', true)
+      .order('name')
+      .limit(6),
   ]);
 
   return (
@@ -75,9 +76,9 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          {posts.length > 0 ? (
+          {posts && posts.length > 0 ? (
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {posts.map((post) => (
+              {posts.map((post: any) => (
                 <BlogCard
                   key={post.id}
                   slug={post.slug}
@@ -119,9 +120,9 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          {thinkers.length > 0 ? (
+          {thinkers && thinkers.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {thinkers.map((t) => (
+              {thinkers.map((t: any) => (
                 <ThinkerCard key={t.id} {...t} />
               ))}
             </div>

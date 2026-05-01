@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import Link from 'next/link';
 import { FileText, Users, BarChart3, BookOpen, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -7,17 +7,23 @@ export const metadata: Metadata = { title: 'Admin' };
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
-  const [postCount, thinkerCount, infographicCount, articleCount, recentPosts] = await Promise.all([
-    prisma.post.count(),
-    prisma.thinker.count(),
-    prisma.infographic.count(),
-    prisma.article.count(),
-    prisma.post.findMany({
-      orderBy: { updatedAt: 'desc' },
-      take: 5,
-      include: { author: true },
-    }),
+  const [postRes, thinkerRes, infographicRes, articleRes, recentRes] = await Promise.all([
+    supabase.from('Post').select('*', { count: 'exact', head: true }),
+    supabase.from('Thinker').select('*', { count: 'exact', head: true }),
+    supabase.from('Infographic').select('*', { count: 'exact', head: true }),
+    supabase.from('Article').select('*', { count: 'exact', head: true }),
+    supabase
+      .from('Post')
+      .select('id, title, category, published, updatedAt, author:Thinker(name)')
+      .order('updatedAt', { ascending: false })
+      .limit(5),
   ]);
+
+  const postCount = postRes.count ?? 0;
+  const thinkerCount = thinkerRes.count ?? 0;
+  const infographicCount = infographicRes.count ?? 0;
+  const articleCount = articleRes.count ?? 0;
+  const recentPosts = recentRes.data ?? [];
 
   const stats = [
     { label: 'Posts',        count: postCount,        icon: FileText,  color: 'text-burgundy-600 bg-burgundy-50' },
@@ -66,7 +72,7 @@ export default async function AdminDashboard() {
         </div>
         {recentPosts.length > 0 ? (
           <div className="divide-y divide-sand/40">
-            {recentPosts.map((post) => (
+            {recentPosts.map((post: any) => (
               <div key={post.id} className="px-5 py-3 flex items-center justify-between">
                 <div>
                   <p className="text-small font-medium text-charcoal">{post.title}</p>

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import LayoutShell from '@/components/LayoutShell';
 import GTMScript from '@/components/GTMScript';
 import CookieConsent from '@/components/CookieConsent';
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { SOCIAL_LINKS } from '@/lib/config';
 import './globals.css';
 
@@ -33,29 +33,30 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [thinkers, settingsRows] = await Promise.all([
-    prisma.thinker.findMany({
-      where: { published: true },
-      orderBy: { name: 'asc' },
-      select: { name: true, slug: true },
-    }),
-    prisma.siteSettings.findMany({
-      where: { key: { startsWith: 'social.' } },
-    }),
+  const [{ data: thinkers }, { data: settingsRows }] = await Promise.all([
+    supabase
+      .from('Thinker')
+      .select('name, slug')
+      .eq('published', true)
+      .order('name'),
+    supabase
+      .from('SiteSettings')
+      .select('key, value')
+      .like('key', 'social.%'),
   ]);
 
   // Build social links: DB values override config defaults
   const socialLinks: Record<string, string> = { ...SOCIAL_LINKS };
-  for (const { key, value } of settingsRows) {
-    const platform = key.replace('social.', '');
-    socialLinks[platform] = value;
+  for (const row of settingsRows ?? []) {
+    const platform = (row.key as string).replace('social.', '');
+    socialLinks[platform] = row.value as string;
   }
 
   return (
     <html lang="en">
       <body className="bg-white text-zinc-900 font-sans antialiased">
         <GTMScript />
-        <LayoutShell thinkers={thinkers} socialLinks={socialLinks}>
+        <LayoutShell thinkers={thinkers ?? []} socialLinks={socialLinks}>
           {children}
         </LayoutShell>
         <CookieConsent />

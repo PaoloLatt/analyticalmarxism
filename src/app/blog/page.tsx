@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import BlogCard from '@/components/BlogCard';
 import type { Metadata } from 'next';
 
@@ -6,11 +6,11 @@ export const metadata: Metadata = { title: 'Blog' };
 export const dynamic = 'force-dynamic';
 
 export default async function BlogPage() {
-  const posts = await prisma.post.findMany({
-    where: { published: true },
-    orderBy: { createdAt: 'desc' },
-    include: { author: true, tags: true },
-  });
+  const { data: posts } = await supabase
+    .from('Post')
+    .select('id, slug, title, excerpt, category, difficulty, createdAt, featured, author:Thinker(name, slug)')
+    .eq('published', true)
+    .order('createdAt', { ascending: false });
 
   const TABS = [
     { key: 'all',        label: 'All'        },
@@ -42,9 +42,9 @@ export default async function BlogPage() {
         ))}
       </div>
 
-      {posts.length > 0 ? (
+      {posts && posts.length > 0 ? (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
+          {posts.map((post: any) => (
             <BlogCard
               key={post.id}
               slug={post.slug}

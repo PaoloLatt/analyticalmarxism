@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import SectionHeader from '@/components/SectionHeader';
 import { BarChart3, Play, Layers, Zap } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -14,11 +14,11 @@ const TYPE_ICON: Record<string, typeof BarChart3> = {
 };
 
 export default async function VisualExplainersPage() {
-  const items = await prisma.infographic.findMany({
-    where: { published: true },
-    orderBy: { createdAt: 'desc' },
-    include: { thinker: true, tags: true },
-  });
+  const { data: items } = await supabase
+    .from('Infographic')
+    .select('id, slug, title, description, imageUrl, videoUrl, type, thinker:Thinker(name)')
+    .eq('published', true)
+    .order('createdAt', { ascending: false });
 
   return (
     <div className="max-w-wide mx-auto px-6 lg:px-10 py-16 lg:py-22">
@@ -29,9 +29,9 @@ export default async function VisualExplainersPage() {
         centered
       />
 
-      {items.length > 0 ? (
+      {items && items.length > 0 ? (
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 mt-12 stagger">
-          {items.map((item) => {
+          {items.map((item: any) => {
             const Icon = TYPE_ICON[item.type] ?? BarChart3;
             return (
               <div

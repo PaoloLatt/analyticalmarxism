@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { supabase } from '@/lib/db';
 import SectionHeader from '@/components/SectionHeader';
 import { BookOpen, FileText, Play, Globe, GraduationCap } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -21,16 +21,19 @@ const DIFFICULTY_LABEL: Record<string, string> = {
 };
 
 export default async function ResourcesPage() {
-  const [resources, glossary] = await Promise.all([
-    prisma.resource.findMany({ orderBy: { createdAt: 'desc' } }),
-    prisma.glossaryTerm.findMany({ orderBy: { term: 'asc' } }),
+  const [{ data: resources }, { data: glossary }] = await Promise.all([
+    supabase.from('Resource').select('*').order('createdAt', { ascending: false }),
+    supabase.from('GlossaryTerm').select('*').order('term'),
   ]);
+
+  const items = resources ?? [];
+  const glossaryItems = glossary ?? [];
 
   // Group resources by difficulty
   const grouped = {
-    introductory: resources.filter(r => r.difficulty === 'introductory'),
-    intermediate: resources.filter(r => r.difficulty === 'intermediate'),
-    advanced:     resources.filter(r => r.difficulty === 'advanced'),
+    introductory: items.filter((r: any) => r.difficulty === 'introductory'),
+    intermediate: items.filter((r: any) => r.difficulty === 'intermediate'),
+    advanced:     items.filter((r: any) => r.difficulty === 'advanced'),
   };
 
   return (
@@ -43,16 +46,16 @@ export default async function ResourcesPage() {
       />
 
       {/* Reading Lists by difficulty */}
-      {resources.length > 0 && (
+      {items.length > 0 && (
         <section className="mt-16">
-          {Object.entries(grouped).map(([level, items]) =>
-            items.length > 0 ? (
+          {Object.entries(grouped).map(([level, levelItems]) =>
+            levelItems.length > 0 ? (
               <div key={level} className="mb-12">
                 <h2 className="font-serif text-headline font-semibold text-charcoal mb-6">
                   {DIFFICULTY_LABEL[level]}
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {items.map((r) => {
+                  {levelItems.map((r: any) => {
                     const Icon = TYPE_ICON[r.type] ?? FileText;
                     return (
                       <div
@@ -90,13 +93,13 @@ export default async function ResourcesPage() {
       )}
 
       {/* Glossary */}
-      {glossary.length > 0 && (
+      {glossaryItems.length > 0 && (
         <section className="mt-16">
           <h2 className="font-serif text-headline font-semibold text-charcoal mb-8 text-center">
             Glossary
           </h2>
           <div className="max-w-article mx-auto divide-y divide-sand">
-            {glossary.map((g) => (
+            {glossaryItems.map((g: any) => (
               <div key={g.id} className="py-6">
                 <dt className="font-serif font-semibold text-title text-charcoal mb-2">
                   {g.term}
@@ -110,7 +113,7 @@ export default async function ResourcesPage() {
         </section>
       )}
 
-      {resources.length === 0 && glossary.length === 0 && (
+      {items.length === 0 && glossaryItems.length === 0 && (
         <div className="text-center py-20 text-muted">
           <p className="text-body">No resources or glossary terms yet.</p>
         </div>
