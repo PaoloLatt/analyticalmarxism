@@ -1,11 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import {
-  BookOpen, BarChart3, Users, FileText, Library, ChevronDown, X,
-} from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface ThinkerItem { name: string; slug: string; }
 
@@ -15,186 +12,84 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-interface NavChild { label: string; href: string; }
-
-interface NavSection {
-  key: string;
-  label: string;
-  href: string;
-  Icon: React.ComponentType<{ size?: number; className?: string }>;
-  children: NavChild[];
-}
+const NAV = [
+  { label: 'Blog',              href: '/blog'             },
+  { label: 'Visual Explainers', href: '/visual-explainers'},
+  { label: 'Thinkers',          href: '/thinkers'         },
+  { label: 'Articles',          href: '/articles'         },
+  { label: 'Resources',         href: '/resources'        },
+];
 
 export default function Sidebar({ thinkers, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
-  const sections: NavSection[] = [
-    {
-      key: 'blog',
-      label: 'Blog & Commentary',
-      href: '/blog',
-      Icon: BookOpen,
-      children: [
-        { label: 'Explainers', href: '/blog?cat=explainer' },
-        { label: 'Commentary', href: '/blog?cat=commentary' },
-        { label: 'Readings',   href: '/blog?cat=reading'   },
-      ],
-    },
-    {
-      key: 'visual-explainers',
-      label: 'Visual Explainers',
-      href: '/visual-explainers',
-      Icon: BarChart3,
-      children: [],
-    },
-    {
-      key: 'thinkers',
-      label: 'Thinkers',
-      href: '/thinkers',
-      Icon: Users,
-      children: thinkers.map((t) => ({ label: t.name, href: `/thinkers/${t.slug}` })),
-    },
-    {
-      key: 'articles',
-      label: 'Articles & Essays',
-      href: '/articles',
-      Icon: FileText,
-      children: [],
-    },
-    {
-      key: 'resources',
-      label: 'Resources',
-      href: '/resources',
-      Icon: Library,
-      children: [
-        { label: 'Reading Lists', href: '/resources#reading-lists' },
-        { label: 'Glossary',      href: '/resources#glossary'      },
-      ],
-    },
-  ];
-
-  const [openSections, setOpenSections] = useState<Set<string>>(() => {
-    const initial = new Set<string>();
-    const seg = pathname.split('/').filter(Boolean)[0] ?? '';
-    if (seg === 'blog') initial.add('blog');
-    if (seg === 'thinkers') initial.add('thinkers');
-    if (seg === 'resources') initial.add('resources');
-    return initial;
-  });
-
-  useEffect(() => {
-    const seg = pathname.split('/').filter(Boolean)[0] ?? '';
-    if (['blog', 'thinkers', 'resources'].includes(seg)) {
-      setOpenSections((prev) => new Set([...prev, seg]));
-    }
-  }, [pathname]);
-
-  function toggleSection(key: string) {
-    setOpenSections((prev) => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
-      return next;
-    });
-  }
-
   function isActive(href: string) {
-    const base = href.split('?')[0].split('#')[0];
-    return pathname === base || (base !== '/' && pathname.startsWith(base + '/'));
+    return pathname === href || (href !== '/' && pathname.startsWith(href + '/'));
   }
 
-  function isChildActive(href: string) {
-    const base = href.split('?')[0].split('#')[0];
-    return pathname === base;
-  }
+  const linkCls = (href: string) =>
+    `block px-5 py-1.5 text-[0.8rem] transition-colors ${
+      isActive(href) ? 'text-white font-medium' : 'text-zinc-400 hover:text-white'
+    }`;
 
   const content = (
-    <div className="flex flex-col h-full overflow-y-auto bg-cream border-r border-sand">
-      {/* Logo */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-sand shrink-0">
-        <Link href="/" className="flex items-center gap-2.5" onClick={onClose}>
-          <span className="w-7 h-7 rounded bg-burgundy-600 flex items-center justify-center text-white font-serif font-bold text-xs shrink-0">
-            AM
-          </span>
-          <span className="font-serif text-[0.9rem] font-semibold leading-tight text-charcoal">
-            Analytical<br />Marxism
-          </span>
+    <div className="flex flex-col h-full bg-[#18181B] overflow-y-auto">
+      {/* Wordmark */}
+      <div className="flex items-center justify-between px-5 pt-6 pb-5 shrink-0">
+        <Link
+          href="/"
+          onClick={onClose}
+          className="text-[0.6rem] font-medium uppercase tracking-[0.2em] text-white leading-snug"
+        >
+          Analytical<br />Marxism
         </Link>
         <button
           onClick={onClose}
-          className="lg:hidden p-1 text-muted hover:text-charcoal"
+          className="lg:hidden p-1 text-zinc-500 hover:text-white transition-colors"
           aria-label="Close menu"
         >
-          <X size={17} />
+          <X size={16} />
         </button>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 p-2.5 space-y-0.5 overflow-y-auto">
-        {sections.map((section) => {
-          const active   = isActive(section.href);
-          const expanded = openSections.has(section.key);
-          const hasKids  = section.children.length > 0;
+      <nav className="flex-1 pb-4">
+        {NAV.map(({ label, href }) => (
+          <div key={href}>
+            <Link href={href} onClick={onClose} className={linkCls(href)}>
+              {label}
+            </Link>
 
-          return (
-            <div key={section.key}>
-              <div className={`flex items-center rounded-md text-[0.8rem] font-medium transition-colors ${
-                active ? 'bg-burgundy-50 text-burgundy-700' : 'text-slate hover:bg-parchment hover:text-charcoal'
-              }`}>
-                <Link
-                  href={section.href}
-                  onClick={onClose}
-                  className="flex items-center gap-2.5 flex-1 px-3 py-2"
-                >
-                  <section.Icon
-                    size={14}
-                    className={active ? 'text-burgundy-600' : 'text-muted'}
-                  />
-                  <span>{section.label}</span>
-                </Link>
-                {hasKids && (
-                  <button
-                    onClick={() => toggleSection(section.key)}
-                    className="px-2 py-2 text-muted hover:text-charcoal"
-                    aria-label={expanded ? 'Collapse' : 'Expand'}
+            {/* Thinker sub-nav — visible when on any /thinkers page */}
+            {href === '/thinkers' && isActive('/thinkers') && thinkers.length > 0 && (
+              <div className="ml-3 mb-1">
+                {thinkers.map((t) => (
+                  <Link
+                    key={t.slug}
+                    href={`/thinkers/${t.slug}`}
+                    onClick={onClose}
+                    className={`block px-5 py-1 text-[0.73rem] transition-colors ${
+                      pathname === `/thinkers/${t.slug}`
+                        ? 'text-white'
+                        : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
                   >
-                    <ChevronDown
-                      size={12}
-                      className={`transition-transform duration-200 ${expanded ? 'rotate-0' : '-rotate-90'}`}
-                    />
-                  </button>
-                )}
+                    {t.name}
+                  </Link>
+                ))}
               </div>
-
-              {hasKids && expanded && (
-                <div className="ml-6 mt-0.5 mb-1 space-y-0.5 border-l border-sand pl-3">
-                  {section.children.map((child) => (
-                    <Link
-                      key={child.href}
-                      href={child.href}
-                      onClick={onClose}
-                      className={`block px-2 py-1.5 rounded text-[0.76rem] transition-colors ${
-                        isChildActive(child.href)
-                          ? 'text-burgundy-700 font-semibold'
-                          : 'text-muted hover:text-charcoal'
-                      }`}
-                    >
-                      {child.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+            )}
+          </div>
+        ))}
       </nav>
 
       {/* Bottom links */}
-      <div className="p-3 border-t border-sand text-[0.7rem] text-muted space-y-1 shrink-0">
-        <Link href="/privacy-policy" className="block hover:text-charcoal transition-colors">
+      <div className="px-5 py-4 border-t border-zinc-800 text-[0.68rem] text-zinc-600 space-y-1.5 shrink-0">
+        <Link href="/privacy-policy" className="block hover:text-zinc-400 transition-colors">
           Privacy Policy
         </Link>
-        <Link href="/admin" className="block hover:text-charcoal transition-colors">
-          Admin Panel
+        <Link href="/admin" className="block hover:text-zinc-400 transition-colors">
+          Admin
         </Link>
       </div>
     </div>
@@ -202,23 +97,23 @@ export default function Sidebar({ thinkers, isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Desktop: fixed sidebar */}
-      <aside className="hidden lg:flex flex-col w-60 shrink-0 fixed left-0 top-0 h-screen z-40">
+      {/* Desktop fixed sidebar */}
+      <aside className="hidden lg:flex flex-col w-[200px] shrink-0 fixed left-0 top-0 h-screen z-40">
         {content}
       </aside>
 
-      {/* Mobile: overlay */}
+      {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-charcoal/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
       )}
 
-      {/* Mobile: drawer */}
+      {/* Mobile drawer */}
       <aside
-        className={`fixed left-0 top-0 h-screen w-60 z-50 lg:hidden transform transition-transform duration-300 ease-in-out ${
+        className={`fixed left-0 top-0 h-screen w-[200px] z-50 lg:hidden transform transition-transform duration-200 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

@@ -1,9 +1,9 @@
 export const SOCIAL_LINKS = {
-  twitter:   { href: 'https://twitter.com/analyticalmarxism',          label: 'Twitter / X' },
-  facebook:  { href: 'https://facebook.com/analyticalmarxism',         label: 'Facebook'    },
-  instagram: { href: 'https://instagram.com/analyticalmarxism',        label: 'Instagram'   },
-  linkedin:  { href: 'https://linkedin.com/company/analyticalmarxism', label: 'LinkedIn'    },
-  youtube:   { href: 'https://youtube.com/@analyticalmarxism',         label: 'YouTube'     },
+  twitter:   'https://twitter.com/placeholder',
+  facebook:  'https://facebook.com/placeholder',
+  linkedin:  'https://linkedin.com/placeholder',
+  instagram: 'https://instagram.com/placeholder',
+  youtube:   'https://youtube.com/placeholder',
 };
 
 export const SITE_CONFIG = {

@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import BlogCard from '@/components/BlogCard';
 import TrackPageView from '@/components/TrackPageView';
@@ -44,9 +43,7 @@ export default async function ThinkerPage({ params }: Props) {
     : null;
 
   let keyWorks: KeyWork[] = [];
-  try {
-    keyWorks = JSON.parse(thinker.keyWorks);
-  } catch {}
+  try { keyWorks = JSON.parse(thinker.keyWorks); } catch {}
 
   return (
     <div className="max-w-wide mx-auto px-6 lg:px-8 py-8 lg:py-10">
@@ -54,37 +51,30 @@ export default async function ThinkerPage({ params }: Props) {
         eventName="thinker_viewed"
         params={{ thinker_slug: thinker.slug, thinker_name: thinker.name }}
       />
-      {/* Back */}
-      <Link
-        href="/thinkers"
-        className="inline-flex items-center gap-1 text-small text-muted hover:text-burgundy-600 transition-colors mb-10"
-      >
-        <ArrowLeft size={14} /> All Thinkers
-      </Link>
 
-      <div className="grid lg:grid-cols-[280px_1fr] gap-12 lg:gap-16">
+      <div className="grid lg:grid-cols-[220px_1fr] gap-10 lg:gap-14">
         {/* Sidebar */}
         <aside>
-          <div className="aspect-square bg-parchment rounded-lg flex items-center justify-center overflow-hidden mb-6">
+          <div className="aspect-square bg-zinc-100 rounded flex items-center justify-center overflow-hidden mb-5">
             {thinker.photoUrl ? (
               <img src={thinker.photoUrl} alt={thinker.name} className="w-full h-full object-cover" />
             ) : (
-              <span className="font-serif text-display text-sand/50">
+              <span className="text-[2.5rem] font-medium text-zinc-300">
                 {thinker.name.split(' ').map(w => w[0]).join('')}
               </span>
             )}
           </div>
 
-          <div className="space-y-3 text-small text-slate">
+          <div className="space-y-2.5 text-[0.8125rem] text-zinc-600">
             {thinker.nationality && (
               <div>
-                <span className="font-semibold text-charcoal">Nationality:</span>{' '}
+                <span className="font-medium text-zinc-900">Nationality:</span>{' '}
                 {thinker.nationality}
               </div>
             )}
             {lifespan && (
               <div>
-                <span className="font-semibold text-charcoal">Life:</span>{' '}
+                <span className="font-medium text-zinc-900">Life:</span>{' '}
                 {lifespan}
               </div>
             )}
@@ -93,46 +83,45 @@ export default async function ThinkerPage({ params }: Props) {
 
         {/* Main content */}
         <div>
-          <h1 className="font-serif text-display font-bold text-charcoal mb-2">
+          <h1 className="text-[1.75rem] font-medium text-zinc-900 mb-2" style={{ letterSpacing: '-0.015em' }}>
             {thinker.name}
           </h1>
-          <p className="text-body text-slate italic mb-8">{thinker.shortBio}</p>
+          <p className="text-[0.9375rem] text-zinc-500 mb-7">{thinker.shortBio}</p>
 
           {/* Contribution */}
-          <div className="bg-burgundy-50 border border-burgundy-200 rounded-lg p-6 lg:p-8 mb-10">
-            <h2 className="font-serif text-title font-semibold text-burgundy-800 mb-3">
+          <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded p-5 lg:p-6 mb-8">
+            <h2 className="text-[0.8125rem] font-medium uppercase tracking-wider text-zinc-400 mb-2.5">
               Key Contribution
             </h2>
-            <p className="text-body text-burgundy-900 leading-relaxed">
+            <p className="text-[0.9375rem] text-zinc-700 leading-relaxed">
               {thinker.contribution}
             </p>
           </div>
 
           {/* Full bio */}
-          <div className="prose prose-lg max-w-none mb-12">
+          <div className="prose prose-base max-w-none mb-10">
             <ReactMarkdown>{thinker.fullBio}</ReactMarkdown>
           </div>
 
           {/* Key Works */}
           {keyWorks.length > 0 && (
-            <section className="mb-12">
-              <h2 className="font-serif text-headline font-semibold text-charcoal mb-6">
+            <section className="mb-10">
+              <h2 className="text-[1rem] font-medium text-zinc-900 mb-4">
                 Key Works
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {keyWorks.map((work, i) => (
                   <div
                     key={i}
-                    className="bg-white border border-sand/60 rounded-lg p-5 flex gap-4"
+                    className="bg-[#FAFAFA] border border-[#E4E4E7] rounded p-4 flex gap-4"
+                    style={{ borderWidth: '0.5px' }}
                   >
-                    <span className="font-mono text-caption text-burgundy-600 font-semibold mt-1 shrink-0">
+                    <span className="font-mono text-[0.65rem] text-[#E24B4A] font-medium mt-0.5 shrink-0">
                       {work.year}
                     </span>
                     <div>
-                      <h3 className="font-serif font-semibold text-charcoal">
-                        {work.title}
-                      </h3>
-                      <p className="text-small text-slate mt-1">{work.description}</p>
+                      <h3 className="text-[0.875rem] font-medium text-zinc-900">{work.title}</h3>
+                      <p className="text-[0.8rem] text-zinc-500 mt-1">{work.description}</p>
                     </div>
                   </div>
                 ))}
@@ -143,10 +132,10 @@ export default async function ThinkerPage({ params }: Props) {
           {/* Related posts */}
           {thinker.posts.length > 0 && (
             <section>
-              <h2 className="font-serif text-headline font-semibold text-charcoal mb-6">
+              <h2 className="text-[1rem] font-medium text-zinc-900 mb-4">
                 Related Posts
               </h2>
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2">
                 {thinker.posts.map((post) => (
                   <BlogCard
                     key={post.id}
@@ -162,6 +151,15 @@ export default async function ThinkerPage({ params }: Props) {
             </section>
           )}
         </div>
+      </div>
+
+      <div className="mt-10 pt-6" style={{ borderTop: '0.5px solid #E4E4E7' }}>
+        <Link
+          href="/thinkers"
+          className="text-[0.78rem] text-zinc-400 hover:text-zinc-900 transition-colors"
+        >
+          ← All Thinkers
+        </Link>
       </div>
     </div>
   );

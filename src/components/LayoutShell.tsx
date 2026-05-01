@@ -17,7 +17,6 @@ export default function LayoutShell({ children, thinkers }: LayoutShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
-  // Admin pages manage their own full-page layout
   if (pathname.startsWith('/admin')) {
     return <>{children}</>;
   }
@@ -29,8 +28,7 @@ export default function LayoutShell({ children, thinkers }: LayoutShellProps) {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
-      {/* Content area shifts right of fixed sidebar on desktop */}
-      <div className="lg:ml-60 flex flex-col min-h-screen">
+      <div className="lg:ml-[200px] flex flex-col min-h-screen">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
         <main className="flex-1">{children}</main>
         <Footer />
