@@ -6,6 +6,8 @@ import { prisma } from '@/lib/db';
 import { SOCIAL_LINKS } from '@/lib/config';
 import './globals.css';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: {
     default: 'Analytical Marxism — Clarity about capitalism',
