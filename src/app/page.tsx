@@ -1,16 +1,21 @@
 import Link from 'next/link';
 import { supabase } from '@/lib/db';
-import BlogCard from '@/components/BlogCard';
-import ThinkerCard from '@/components/ThinkerCard';
+import HomeTabs from '@/components/HomeTabs';
 import { ArrowRight } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [{ data: posts }, { data: thinkers }] = await Promise.all([
+  const [{ data: posts }, { data: articles }, { data: thinkers }, { data: visuals }] = await Promise.all([
     supabase
       .from('Post')
       .select('id, slug, title, excerpt, category, difficulty, createdAt, featured, author:Thinker(name, slug)')
+      .eq('published', true)
+      .order('createdAt', { ascending: false })
+      .limit(6),
+    supabase
+      .from('Article')
+      .select('id, slug, title, subtitle, author, excerpt')
       .eq('published', true)
       .order('createdAt', { ascending: false })
       .limit(6),
@@ -19,6 +24,12 @@ export default async function HomePage() {
       .select('id, slug, name, shortBio, nationality, birthYear, deathYear, photoUrl')
       .eq('published', true)
       .order('name')
+      .limit(6),
+    supabase
+      .from('Infographic')
+      .select('id, slug, title, description, imageUrl, type')
+      .eq('published', true)
+      .order('createdAt', { ascending: false })
       .limit(6),
   ]);
 
@@ -59,85 +70,18 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <div className="max-w-wide mx-auto px-6 lg:px-8 py-10 lg:py-12 space-y-14">
-
-        {/* ── Latest posts ── */}
-        <section>
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <div className="w-6 h-[2px] bg-[#E24B4A] mb-3" />
-              <h2 className="text-[1.125rem] font-medium text-zinc-900">Latest</h2>
-            </div>
-            <Link
-              href="/blog"
-              className="hidden sm:inline-flex items-center gap-1 text-[0.78rem] text-zinc-400 hover:text-zinc-900 transition-colors"
-            >
-              All posts <ArrowRight size={12} />
-            </Link>
-          </div>
-
-          {posts && posts.length > 0 ? (
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {posts.map((post: any) => (
-                <BlogCard
-                  key={post.id}
-                  slug={post.slug}
-                  title={post.title}
-                  excerpt={post.excerpt}
-                  category={post.category}
-                  difficulty={post.difficulty}
-                  createdAt={post.createdAt}
-                  authorName={post.author?.name}
-                  featured={post.featured}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="py-12 text-center text-zinc-400 border border-zinc-100 rounded bg-zinc-50">
-              <p className="text-[0.8125rem]">
-                No posts yet.{' '}
-                <Link href="/admin" className="text-[#E24B4A] underline">
-                  Create your first post
-                </Link>
-                .
-              </p>
-            </div>
-          )}
-        </section>
-
-        {/* ── Thinkers ── */}
-        <section>
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <div className="w-6 h-[2px] bg-[#E24B4A] mb-3" />
-              <h2 className="text-[1.125rem] font-medium text-zinc-900">Key Thinkers</h2>
-            </div>
-            <Link
-              href="/thinkers"
-              className="hidden sm:inline-flex items-center gap-1 text-[0.78rem] text-zinc-400 hover:text-zinc-900 transition-colors"
-            >
-              All thinkers <ArrowRight size={12} />
-            </Link>
-          </div>
-
-          {thinkers && thinkers.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {thinkers.map((t: any) => (
-                <ThinkerCard key={t.id} {...t} />
-              ))}
-            </div>
-          ) : (
-            <div className="py-12 text-center text-zinc-400 border border-zinc-100 rounded bg-zinc-50">
-              <p className="text-[0.8125rem]">
-                No thinkers yet.{' '}
-                <Link href="/admin" className="text-[#E24B4A] underline">
-                  Add via admin panel
-                </Link>
-                .
-              </p>
-            </div>
-          )}
-        </section>
+      {/* ── Tabbed content ── */}
+      <div className="max-w-wide mx-auto px-6 lg:px-8 py-10 lg:py-12">
+        <div className="mb-7">
+          <div className="w-6 h-[2px] bg-[#E24B4A] mb-3" />
+          <h2 className="text-[1.125rem] font-medium text-zinc-900">Explore</h2>
+        </div>
+        <HomeTabs
+          posts={posts ?? []}
+          articles={articles ?? []}
+          thinkers={thinkers ?? []}
+          visuals={visuals ?? []}
+        />
       </div>
     </>
   );

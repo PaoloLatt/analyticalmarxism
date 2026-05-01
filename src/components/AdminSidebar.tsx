@@ -2,14 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FileText, Users, Share2, Settings, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, FileText, Newspaper, GraduationCap, Image, Users, Share2, Settings, ArrowLeft } from 'lucide-react';
 
 const ADMIN_NAV = [
-  { label: 'Dashboard', href: '/admin',          icon: LayoutDashboard },
-  { label: 'Posts',     href: '/admin/posts',    icon: FileText        },
-  { label: 'Thinkers',  href: '/admin/thinkers', icon: Users           },
-  { label: 'Social',    href: '/admin/social',   icon: Share2          },
-  { label: 'Settings',  href: '/admin/settings', icon: Settings        },
+  { label: 'Dashboard', href: '/admin',            icon: LayoutDashboard },
+  { label: 'Posts',     href: '/admin/posts',      icon: FileText        },
+  { label: 'Articles',  href: '/admin/articles',   icon: Newspaper       },
+  { label: 'Resources', href: '/admin/resources',  icon: GraduationCap   },
+  { label: 'Visuals',   href: '/admin/visuals',    icon: Image           },
+  { label: 'Thinkers',  href: '/admin/thinkers',   icon: Users           },
+  { label: 'Social',    href: '/admin/social',     icon: Share2          },
+  { label: 'Settings',  href: '/admin/settings',   icon: Settings        },
 ];
 
 export default function AdminSidebar() {
@@ -34,16 +37,21 @@ export default function AdminSidebar() {
 
       {/* Nav */}
       <nav className="flex-1 py-3">
-        {ADMIN_NAV.map(({ label, href, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className="flex items-center gap-2.5 px-5 py-1.5 text-[0.8rem] transition-colors"
-            style={{ color: isActive(href) ? '#ffffff' : '#A1A1AA' }}
-          >
-            <Icon size={13} style={{ opacity: isActive(href) ? 1 : 0.7 }} />
-            <span className={isActive(href) ? 'font-medium' : ''}>{label}</span>
-          </Link>
+        {ADMIN_NAV.map(({ label, href, icon: Icon }, i) => (
+          <div key={href}>
+            {/* Divider before Social */}
+            {i === 6 && (
+              <div className="mx-5 my-2" style={{ borderTop: '0.5px solid #27272A' }} />
+            )}
+            <Link
+              href={href}
+              className="flex items-center gap-2.5 px-5 py-1.5 text-[0.8rem] transition-colors"
+              style={{ color: isActive(href) ? '#ffffff' : '#A1A1AA' }}
+            >
+              <Icon size={13} style={{ opacity: isActive(href) ? 1 : 0.7 }} />
+              <span className={isActive(href) ? 'font-medium' : ''}>{label}</span>
+            </Link>
+          </div>
         ))}
       </nav>
 

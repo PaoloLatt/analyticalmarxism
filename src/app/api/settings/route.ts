@@ -8,6 +8,8 @@ const DEFAULTS: Record<string, string> = {
   'social.instagram': 'https://instagram.com/placeholder',
   'social.youtube':   'https://youtube.com/placeholder',
   'site.tagline':     'Clarity about capitalism',
+  'cookie.bannerText': 'We use cookies to analyse traffic and improve your experience.',
+  'cookie.privacyUrl': '/privacy-policy',
 };
 
 export async function GET() {

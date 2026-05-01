@@ -39,18 +39,24 @@ export default async function RootLayout({
       .select('name, slug')
       .eq('published', true)
       .order('name'),
-    supabase
-      .from('SiteSettings')
-      .select('key, value')
-      .like('key', 'social.%'),
+    supabase.from('SiteSettings').select('key, value'),
   ]);
 
-  // Build social links: DB values override config defaults
-  const socialLinks: Record<string, string> = { ...SOCIAL_LINKS };
+  const allSettings: Record<string, string> = {};
   for (const row of settingsRows ?? []) {
-    const platform = (row.key as string).replace('social.', '');
-    socialLinks[platform] = row.value as string;
+    allSettings[row.key as string] = row.value as string;
   }
+
+  // Social links: DB values override config defaults
+  const socialLinks: Record<string, string> = { ...SOCIAL_LINKS };
+  for (const [k, v] of Object.entries(allSettings)) {
+    if (k.startsWith('social.')) {
+      socialLinks[k.replace('social.', '')] = v;
+    }
+  }
+
+  const cookieBannerText = allSettings['cookie.bannerText'] || undefined;
+  const cookiePrivacyUrl = allSettings['cookie.privacyUrl'] || undefined;
 
   return (
     <html lang="en">
@@ -59,7 +65,7 @@ export default async function RootLayout({
         <LayoutShell thinkers={thinkers ?? []} socialLinks={socialLinks}>
           {children}
         </LayoutShell>
-        <CookieConsent />
+        <CookieConsent bannerText={cookieBannerText} privacyUrl={cookiePrivacyUrl} />
       </body>
     </html>
   );
