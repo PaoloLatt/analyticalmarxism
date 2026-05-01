@@ -11,9 +11,10 @@ interface ThinkerItem { name: string; slug: string; }
 interface LayoutShellProps {
   children: React.ReactNode;
   thinkers: ThinkerItem[];
+  socialLinks: Record<string, string>;
 }
 
-export default function LayoutShell({ children, thinkers }: LayoutShellProps) {
+export default function LayoutShell({ children, thinkers, socialLinks }: LayoutShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
@@ -29,7 +30,10 @@ export default function LayoutShell({ children, thinkers }: LayoutShellProps) {
         onClose={() => setSidebarOpen(false)}
       />
       <div className="lg:ml-[200px] flex flex-col min-h-screen">
-        <TopBar onMenuClick={() => setSidebarOpen(true)} />
+        <TopBar
+          onMenuClick={() => setSidebarOpen(true)}
+          socialLinks={socialLinks}
+        />
         <main className="flex-1">{children}</main>
         <Footer />
       </div>

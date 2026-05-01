@@ -3,6 +3,7 @@ import LayoutShell from '@/components/LayoutShell';
 import GTMScript from '@/components/GTMScript';
 import CookieConsent from '@/components/CookieConsent';
 import { prisma } from '@/lib/db';
+import { SOCIAL_LINKS } from '@/lib/config';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -30,17 +31,31 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const thinkers = await prisma.thinker.findMany({
-    where: { published: true },
-    orderBy: { name: 'asc' },
-    select: { name: true, slug: true },
-  });
+  const [thinkers, settingsRows] = await Promise.all([
+    prisma.thinker.findMany({
+      where: { published: true },
+      orderBy: { name: 'asc' },
+      select: { name: true, slug: true },
+    }),
+    prisma.siteSettings.findMany({
+      where: { key: { startsWith: 'social.' } },
+    }),
+  ]);
+
+  // Build social links: DB values override config defaults
+  const socialLinks: Record<string, string> = { ...SOCIAL_LINKS };
+  for (const { key, value } of settingsRows) {
+    const platform = key.replace('social.', '');
+    socialLinks[platform] = value;
+  }
 
   return (
     <html lang="en">
-      <body className="bg-cream text-charcoal font-sans antialiased">
+      <body className="bg-white text-zinc-900 font-sans antialiased">
         <GTMScript />
-        <LayoutShell thinkers={thinkers}>{children}</LayoutShell>
+        <LayoutShell thinkers={thinkers} socialLinks={socialLinks}>
+          {children}
+        </LayoutShell>
         <CookieConsent />
       </body>
     </html>

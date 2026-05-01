@@ -1,11 +1,11 @@
 'use client';
 
 import { Menu, Twitter, Linkedin, Youtube } from 'lucide-react';
-import { SOCIAL_LINKS } from '@/lib/config';
 import Breadcrumb from './Breadcrumb';
 
 interface TopBarProps {
   onMenuClick: () => void;
+  socialLinks: Record<string, string>;
 }
 
 function FacebookIcon({ size = 16 }: { size?: number }) {
@@ -26,15 +26,15 @@ function InstagramIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-const SOCIAL_ICONS = [
-  { key: 'twitter',   Icon: () => <Twitter size={16} />,   href: SOCIAL_LINKS.twitter,   label: 'Twitter / X' },
-  { key: 'facebook',  Icon: () => <FacebookIcon />,         href: SOCIAL_LINKS.facebook,  label: 'Facebook'    },
-  { key: 'instagram', Icon: () => <InstagramIcon />,        href: SOCIAL_LINKS.instagram, label: 'Instagram'   },
-  { key: 'linkedin',  Icon: () => <Linkedin size={16} />,  href: SOCIAL_LINKS.linkedin,  label: 'LinkedIn'    },
-  { key: 'youtube',   Icon: () => <Youtube size={16} />,   href: SOCIAL_LINKS.youtube,   label: 'YouTube'     },
-];
+export default function TopBar({ onMenuClick, socialLinks }: TopBarProps) {
+  const icons = [
+    { key: 'twitter',   Icon: () => <Twitter size={16} />,   label: 'Twitter / X' },
+    { key: 'facebook',  Icon: () => <FacebookIcon />,         label: 'Facebook'    },
+    { key: 'instagram', Icon: () => <InstagramIcon />,        label: 'Instagram'   },
+    { key: 'linkedin',  Icon: () => <Linkedin size={16} />,  label: 'LinkedIn'    },
+    { key: 'youtube',   Icon: () => <Youtube size={16} />,   label: 'YouTube'     },
+  ];
 
-export default function TopBar({ onMenuClick }: TopBarProps) {
   return (
     <header
       className="sticky top-0 z-30 h-12 flex items-center bg-white px-4 gap-3 shrink-0"
@@ -54,21 +54,25 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
 
       {/* Social icons */}
       <div className="hidden sm:flex items-center gap-0.5 shrink-0">
-        {SOCIAL_ICONS.map(({ key, Icon, href, label }) => (
-          <a
-            key={key}
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={label}
-            className="p-1.5 transition-colors"
-            style={{ color: '#A1A1AA' }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#18181B')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = '#A1A1AA')}
-          >
-            <Icon />
-          </a>
-        ))}
+        {icons.map(({ key, Icon, label }) => {
+          const href = socialLinks[key];
+          if (!href) return null;
+          return (
+            <a
+              key={key}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={label}
+              className="p-1.5 transition-colors"
+              style={{ color: '#A1A1AA' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#18181B')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#A1A1AA')}
+            >
+              <Icon />
+            </a>
+          );
+        })}
       </div>
     </header>
   );

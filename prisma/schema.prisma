@@ -145,3 +145,10 @@ model GlossaryTerm {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// ─── Site Settings (key-value store) ────────────────────────
+model SiteSettings {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

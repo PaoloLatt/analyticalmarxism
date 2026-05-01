@@ -1,8 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { X } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 
 interface ThinkerItem { name: string; slug: string; }
 
@@ -12,25 +13,92 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-const NAV = [
-  { label: 'Blog',              href: '/blog'             },
-  { label: 'Visual Explainers', href: '/visual-explainers'},
-  { label: 'Thinkers',          href: '/thinkers'         },
-  { label: 'Articles',          href: '/articles'         },
-  { label: 'Resources',         href: '/resources'        },
-];
+interface NavSection {
+  key: string;
+  label: string;
+  href: string;
+  children: { label: string; href: string }[];
+}
 
 export default function Sidebar({ thinkers, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
-  function isActive(href: string) {
-    return pathname === href || (href !== '/' && pathname.startsWith(href + '/'));
+  const sections: NavSection[] = [
+    {
+      key: 'blog',
+      label: 'Blog & Commentary',
+      href: '/blog',
+      children: [
+        { label: 'Explainers', href: '/blog?cat=explainer'  },
+        { label: 'Commentary', href: '/blog?cat=commentary' },
+        { label: 'Readings',   href: '/blog?cat=reading'    },
+      ],
+    },
+    {
+      key: 'visual-explainers',
+      label: 'Visual Explainers',
+      href: '/visual-explainers',
+      children: [],
+    },
+    {
+      key: 'thinkers',
+      label: 'Thinkers',
+      href: '/thinkers',
+      children: thinkers.map((t) => ({ label: t.name, href: `/thinkers/${t.slug}` })),
+    },
+    {
+      key: 'articles',
+      label: 'Articles & Essays',
+      href: '/articles',
+      children: [],
+    },
+    {
+      key: 'resources',
+      label: 'Resources',
+      href: '/resources',
+      children: [
+        { label: 'Reading Lists', href: '/resources#reading-lists' },
+        { label: 'Glossary',      href: '/resources#glossary'      },
+      ],
+    },
+  ];
+
+  function activeSection() {
+    const seg = pathname.split('/').filter(Boolean)[0] ?? '';
+    return seg;
   }
 
-  const linkCls = (href: string) =>
-    `block px-5 py-1.5 text-[0.8rem] transition-colors ${
-      isActive(href) ? 'text-white font-medium' : 'text-zinc-400 hover:text-white'
-    }`;
+  const [openSections, setOpenSections] = useState<Set<string>>(() => {
+    const s = new Set<string>();
+    const seg = pathname.split('/').filter(Boolean)[0] ?? '';
+    if (['blog', 'thinkers', 'resources'].includes(seg)) s.add(seg);
+    return s;
+  });
+
+  useEffect(() => {
+    const seg = pathname.split('/').filter(Boolean)[0] ?? '';
+    if (['blog', 'thinkers', 'resources'].includes(seg)) {
+      setOpenSections((prev) => new Set([...prev, seg]));
+    }
+  }, [pathname]);
+
+  function toggle(key: string) {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }
+
+  function isActive(href: string) {
+    const base = href.split('?')[0].split('#')[0];
+    return pathname === base || (base !== '/' && pathname.startsWith(base + '/'));
+  }
+
+  function isChildActive(href: string) {
+    const base = href.split('?')[0].split('#')[0];
+    return pathname === base;
+  }
 
   const content = (
     <div className="flex flex-col h-full bg-[#18181B] overflow-y-auto">
@@ -54,33 +122,58 @@ export default function Sidebar({ thinkers, isOpen, onClose }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 pb-4">
-        {NAV.map(({ label, href }) => (
-          <div key={href}>
-            <Link href={href} onClick={onClose} className={linkCls(href)}>
-              {label}
-            </Link>
+        {sections.map(({ key, label, href, children }) => {
+          const active   = isActive(href);
+          const expanded = openSections.has(key);
+          const hasKids  = children.length > 0;
 
-            {/* Thinker sub-nav — visible when on any /thinkers page */}
-            {href === '/thinkers' && isActive('/thinkers') && thinkers.length > 0 && (
-              <div className="ml-3 mb-1">
-                {thinkers.map((t) => (
-                  <Link
-                    key={t.slug}
-                    href={`/thinkers/${t.slug}`}
-                    onClick={onClose}
-                    className={`block px-5 py-1 text-[0.73rem] transition-colors ${
-                      pathname === `/thinkers/${t.slug}`
-                        ? 'text-white'
-                        : 'text-zinc-500 hover:text-zinc-300'
-                    }`}
+          return (
+            <div key={key}>
+              <div className="flex items-center">
+                <Link
+                  href={href}
+                  onClick={onClose}
+                  className={`flex-1 px-5 py-1.5 text-[0.8rem] transition-colors ${
+                    active ? 'text-white font-medium' : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  {label}
+                </Link>
+                {hasKids && (
+                  <button
+                    onClick={() => toggle(key)}
+                    className="px-3 py-1.5 text-zinc-600 hover:text-zinc-300 transition-colors"
+                    aria-label={expanded ? 'Collapse' : 'Expand'}
                   >
-                    {t.name}
-                  </Link>
-                ))}
+                    <ChevronDown
+                      size={11}
+                      className={`transition-transform duration-150 ${expanded ? 'rotate-0' : '-rotate-90'}`}
+                    />
+                  </button>
+                )}
               </div>
-            )}
-          </div>
-        ))}
+
+              {hasKids && expanded && (
+                <div className="ml-3 mb-1">
+                  {children.map((child) => (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      onClick={onClose}
+                      className={`block px-5 py-1 text-[0.73rem] transition-colors ${
+                        isChildActive(child.href)
+                          ? 'text-white'
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </nav>
 
       {/* Bottom links */}

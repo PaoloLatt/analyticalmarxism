@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FileText, Users, Share2, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, Share2, Settings, ArrowLeft } from 'lucide-react';
 
 const ADMIN_NAV = [
   { label: 'Dashboard', href: '/admin',          icon: LayoutDashboard },
   { label: 'Posts',     href: '/admin/posts',    icon: FileText        },
   { label: 'Thinkers',  href: '/admin/thinkers', icon: Users           },
   { label: 'Social',    href: '/admin/social',   icon: Share2          },
+  { label: 'Settings',  href: '/admin/settings', icon: Settings        },
 ];
 
 export default function AdminSidebar() {
@@ -37,15 +38,11 @@ export default function AdminSidebar() {
           <Link
             key={href}
             href={href}
-            className={`flex items-center gap-2.5 px-5 py-1.5 text-[0.8rem] transition-colors ${
-              isActive(href)
-                ? 'text-white font-medium'
-                : 'hover:text-white'
-            }`}
-            style={{ color: isActive(href) ? undefined : '#A1A1AA' }}
+            className="flex items-center gap-2.5 px-5 py-1.5 text-[0.8rem] transition-colors"
+            style={{ color: isActive(href) ? '#ffffff' : '#A1A1AA' }}
           >
-            <Icon size={13} />
-            {label}
+            <Icon size={13} style={{ opacity: isActive(href) ? 1 : 0.7 }} />
+            <span className={isActive(href) ? 'font-medium' : ''}>{label}</span>
           </Link>
         ))}
       </nav>
